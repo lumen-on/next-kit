@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import pc from 'picocolors';
 import { initCommand } from './commands/init.js';
 import { componentCommand } from './commands/component.js';
+import { apiCommand } from './commands/api.js';
 
 const program = new Command();
 
@@ -24,5 +25,11 @@ program
   .option('--shadcn', 'Include shadcn/ui imports')
   .option('--test', 'Generate test file')
   .action(componentCommand);
+
+program
+  .command('api')
+  .description('Generate API routes and Server Actions')
+  .argument('[name]', 'Route name')
+  .action(apiCommand);
 
 program.parse(process.argv);

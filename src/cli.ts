@@ -5,6 +5,7 @@ import { initCommand } from './commands/init.js';
 import { componentCommand } from './commands/component.js';
 import { apiCommand } from './commands/api.js';
 import { pageCommand } from './commands/page.js';
+import { hookCommand } from './commands/hook.js';
 
 const program = new Command();
 
@@ -37,5 +38,10 @@ program
   .description('Generate a Next.js page')
   .option('--layout', 'Include layout file')
   .action(pageCommand);
+
+program
+  .command('hook <name>')
+  .description('Generate a custom React hook')
+  .action(hookCommand);
 
 program.parse(process.argv);

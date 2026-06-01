@@ -1,8 +1,8 @@
-import { intro, text, confirm, outro } from '@clack/prompts';
+import { intro, confirm, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile } from '../core/file-system.js';
-import { toKebabCase, toPascalCase } from '../core/template-engine.js';
+import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
+import { toKebabCase, toPascalCase, renderTemplate } from '../core/template-engine.js';
 import path from 'path';
 
 export async function pageCommand(name: string, options: { layout?: boolean } = {}): Promise<void> {
@@ -16,7 +16,6 @@ export async function pageCommand(name: string, options: { layout?: boolean } = 
   await ensureDir(targetDir);
 
   const pagePath = path.join(targetDir, 'page.tsx');
-  const layoutPath = path.join(targetDir, 'layout.tsx');
 
   if (await pathExists(pagePath)) {
     logger.error(`Page "${pageName}" already exists`);
@@ -24,28 +23,26 @@ export async function pageCommand(name: string, options: { layout?: boolean } = 
   }
 
   // page.tsx
-  const pageCode = `export default function ${componentName}Page() {\n`;
-  pageCode += `  return (\n`;
-  pageCode += `    <div className="container mx-auto px-4 py-8">\n`;
-  pageCode += `      <h1 className="text-3xl font-bold">${componentName}</h1>\n`;
-  pageCode += `      {/* TODO: Implement ${componentName} page */}\n`;
-  pageCode += `    </div>\n`;
-  pageCode += `  );\n`;
-  pageCode += `}\n`;
+  const pageTemplatePath = path.resolve(
+    import.meta.dirname,
+    '../../templates/page/page.tsx.tpl'
+  );
+  const pageTemplate = await readFile(pageTemplatePath);
+  const pageCode = renderTemplate(pageTemplate, { Name: componentName });
 
   await writeFile(pagePath, pageCode);
   logger.success(`Created ${pc.dim(`src/app/${pageName}/page.tsx`)}`);
 
   // layout.tsx (опционально)
   if (includeLayout) {
-    const layoutCode = `export default function ${componentName}Layout({\n`;
-    layoutCode += `  children,\n`;
-    layoutCode += `}: {\n`;
-    layoutCode += `  children: React.ReactNode;\n`;
-    layoutCode += `}) {\n`;
-    layoutCode += `  return <>{children}</>;\n`;
-    layoutCode += `}\n`;
+    const layoutTemplatePath = path.resolve(
+      import.meta.dirname,
+      '../../templates/page/layout.tsx.tpl'
+    );
+    const layoutTemplate = await readFile(layoutTemplatePath);
+    const layoutCode = renderTemplate(layoutTemplate, { Name: componentName });
 
+    const layoutPath = path.join(targetDir, 'layout.tsx');
     await writeFile(layoutPath, layoutCode);
     logger.success(`Created ${pc.dim(`src/app/${pageName}/layout.tsx`)}`);
   }

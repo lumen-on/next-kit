@@ -1,7 +1,8 @@
-import { intro, text, select, confirm, outro, spinner } from '@clack/prompts';
+import { intro, text, confirm, select, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile } from '../core/file-system.js';
+import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
+import { renderTemplate } from '../core/template-engine.js';
 import path from 'path';
 
 interface InitOptions {
@@ -11,157 +12,109 @@ interface InitOptions {
 export async function initCommand(options: InitOptions = {}): Promise<void> {
   intro(pc.bgCyan(pc.black(' next-kit init ')));
 
-  const projectName = await text({
-    message: 'Project name?',
-    placeholder: 'my-next-app',
-    validate: (value) => {
-      if (!value) return 'Project name is required';
-      if (!/^[a-z0-9-]+$/.test(value)) return 'Use lowercase letters, numbers and hyphens only';
-    },
-  });
+  const useDefaults = options.yes ?? false;
 
-  if (typeof projectName === 'symbol') {
-    logger.error('Operation cancelled');
-    process.exit(0);
+  let projectName = 'my-next-app';
+  let useTypeScript = true;
+  let useTailwind = true;
+  let useShadcn = true;
+  let useEslint = true;
+  let usePrettier = true;
+  let usePrisma = false;
+
+  if (!useDefaults) {
+    const nameInput = await text({
+      message: 'Project name?',
+      placeholder: projectName,
+      validate: (value) => {
+        if (!value) return 'Project name is required';
+        if (!/^[a-z0-9-]+$/.test(value)) return 'Use lowercase letters, numbers and hyphens only';
+      },
+    });
+    if (typeof nameInput === 'string') projectName = nameInput;
+
+    useTypeScript = await confirm({ message: 'Use TypeScript?', initialValue: true });
+    useTailwind = await confirm({ message: 'Use Tailwind CSS?', initialValue: true });
+    useShadcn = useTailwind ? await confirm({ message: 'Use shadcn/ui?', initialValue: true }) : false;
+    useEslint = await confirm({ message: 'Use ESLint?', initialValue: true });
+    usePrettier = await confirm({ message: 'Use Prettier?', initialValue: true });
+    usePrisma = await confirm({ message: 'Use Prisma?', initialValue: false });
   }
 
-  // Если --yes, используем дефолтные значения
-  const useTypeScript = options.yes ? true : await confirm({
-    message: 'Use TypeScript?',
-    initialValue: true,
-  });
-
-  const useTailwind = options.yes ? true : await confirm({
-    message: 'Use Tailwind CSS?',
-    initialValue: true,
-  });
-
-  const useShadcn = useTailwind && (options.yes ? true : await confirm({
-    message: 'Use shadcn/ui?',
-    initialValue: true,
-  }));
-
-  const useEslint = options.yes ? true : await confirm({
-    message: 'Add ESLint + Prettier?',
-    initialValue: true,
-  });
-
-  const usePrisma = options.yes ? false : await confirm({
-    message: 'Add Prisma ORM?',
-    initialValue: false,
-  });
-
-  const s = spinner();
-  s.start('Creating project...');
-
-  const projectPath = path.resolve(process.cwd(), projectName as string);
+  const projectPath = path.resolve(process.cwd(), projectName);
 
   if (await pathExists(projectPath)) {
-    s.stop('Error');
     logger.error(`Directory "${projectName}" already exists`);
     process.exit(1);
   }
 
+  logger.info(`Creating project in ${pc.dim(projectPath)}...`);
   await ensureDir(projectPath);
   await ensureDir(path.join(projectPath, 'src/app'));
 
-  // package.json
-  const packageJson: any = {
-    name: projectName,
-    version: '0.1.0',
-    private: true,
-    scripts: {
-      dev: 'next dev',
-      build: 'next build',
-      start: 'next start',
-      lint: 'next lint',
-    },
-    dependencies: {
-      next: '14.2.3',
-      react: '^18',
-      'react-dom': '^18',
-    },
-    devDependencies: {},
-  };
+  // Базовые файлы
+  await writeFile(
+    path.join(projectPath, 'package.json'),
+    JSON.stringify({
+      name: projectName,
+      version: '0.1.0',
+      private: true,
+      scripts: {
+        dev: 'next dev',
+        build: 'next build',
+        start: 'next start',
+        lint: 'next lint',
+        ...(usePrettier && { format: 'prettier --write .' }),
+      },
+    }, null, 2)
+  );
 
+  await writeFile(path.join(projectPath, 'README.md'), `# ${projectName}\n\nCreated with next-kit.\n`);
+  await writeFile(path.join(projectPath, '.gitignore'), 'node_modules\n.next\nout\n.env*\n');
+
+  // Конфиги
   if (useTypeScript) {
-    packageJson.devDependencies = {
-      ...packageJson.devDependencies,
-      typescript: '^5.4',
-      '@types/node': '^20',
-      '@types/react': '^18',
-      '@types/react-dom': '^18',
-    };
+    const tsconfigTpl = await readFile(
+      path.resolve(import.meta.dirname, '../../templates/init/tsconfig.json.tpl')
+    );
+    await writeFile(path.join(projectPath, 'tsconfig.json'), tsconfigTpl);
   }
 
   if (useTailwind) {
-    packageJson.devDependencies = {
-      ...packageJson.devDependencies,
-      tailwindcss: '^3.4',
-      postcss: '^8',
-      autoprefixer: '^10',
-    };
-  }
+    const tailwindTpl = await readFile(
+      path.resolve(import.meta.dirname, '../../templates/init/tailwind.config.ts.tpl')
+    );
+    await writeFile(path.join(projectPath, 'tailwind.config.ts'), tailwindTpl);
 
-  if (useShadcn) {
-    packageJson.dependencies = {
-      ...packageJson.dependencies,
-      'class-variance-authority': '^0.7.0',
-      clsx: '^2.1.1',
-      'tailwind-merge': '^2.3.0',
-      'lucide-react': '^0.378.0',
-    };
-    packageJson.devDependencies = {
-      ...packageJson.devDependencies,
-      'tailwindcss-animate': '^1.0.7',
-    };
+    const postcssTpl = await readFile(
+      path.resolve(import.meta.dirname, '../../templates/init/postcss.config.js.tpl')
+    );
+    await writeFile(path.join(projectPath, 'postcss.config.js'), postcssTpl);
   }
 
   if (useEslint) {
-    packageJson.devDependencies = {
-      ...packageJson.devDependencies,
-      eslint: '^8',
-      'eslint-config-next': '14.2.3',
-      prettier: '^3.2',
-    };
-    packageJson.scripts.lint = 'next lint && prettier --check .';
-    packageJson.scripts.format = 'prettier --write .';
+    const eslintTpl = await readFile(
+      path.resolve(import.meta.dirname, '../../templates/init/.eslintrc.json.tpl')
+    );
+    await writeFile(path.join(projectPath, '.eslintrc.json'), eslintTpl);
+  }
+
+  if (usePrettier) {
+    const prettierTpl = await readFile(
+      path.resolve(import.meta.dirname, '../../templates/init/prettier.config.js.tpl')
+    );
+    await writeFile(path.join(projectPath, 'prettier.config.js'), prettierTpl);
   }
 
   if (usePrisma) {
-    packageJson.dependencies = {
-      ...packageJson.dependencies,
-      '@prisma/client': '^5.14.0',
-    };
-    packageJson.devDependencies = {
-      ...packageJson.devDependencies,
-      prisma: '^5.14.0',
-    };
-    packageJson.scripts['db:generate'] = 'prisma generate';
-    packageJson.scripts['db:push'] = 'prisma db push';
-    packageJson.scripts['db:migrate'] = 'prisma migrate dev';
+    await ensureDir(path.join(projectPath, 'prisma'));
+    const prismaTpl = await readFile(
+      path.resolve(import.meta.dirname, '../../templates/init/prisma.schema.prisma.tpl')
+    );
+    await writeFile(path.join(projectPath, 'prisma/schema.prisma'), prismaTpl);
   }
 
-  await writeFile(
-    path.join(projectPath, 'package.json'),
-    JSON.stringify(packageJson, null, 2)
-  );
-
-  // README
-  await writeFile(
-    path.join(projectPath, 'README.md'),
-    `# ${projectName}\n\nNext.js project created with next-kit.\n`
-  );
-
-  // .gitignore
-  await writeFile(
-    path.join(projectPath, '.gitignore'),
-    `node_modules\n.next\nout\n.env*\n*.log\n`
-  );
-
-  s.stop('Project created!');
-
-  logger.success(`Created project in ${pc.cyan(projectName as string)}`);
+  logger.success('Project initialized successfully!');
   logger.dim(`\nNext steps:\n  cd ${projectName}\n  npm install\n  npm run dev`);
 
   outro(pc.green('Done!'));

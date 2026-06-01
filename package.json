@@ -1,0 +1,28 @@
+{
+  "name": "next-kit",
+  "version": "0.1.0",
+  "description": "Modern code and template generator for Next.js",
+  "type": "module",
+  "bin": {
+    "next-kit": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js"
+  },
+  "keywords": ["next.js", "cli", "generator", "template"],
+  "author": "lumen-on",
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.8.2",
+    "commander": "^12.1.0",
+    "fs-extra": "^11.2.0",
+    "picocolors": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}

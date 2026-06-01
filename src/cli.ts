@@ -7,6 +7,7 @@ import { apiCommand } from './commands/api.js';
 import { pageCommand } from './commands/page.js';
 import { hookCommand } from './commands/hook.js';
 import { middlewareCommand } from './commands/middleware.js';
+import { layoutCommand } from './commands/layout.js';
 
 const program = new Command();
 
@@ -49,5 +50,10 @@ program
   .command('middleware')
   .description('Generate middleware.ts')
   .action(middlewareCommand);
+
+program
+  .command('layout <name>')
+  .description('Generate a layout file')
+  .action(layoutCommand);
 
 program.parse(process.argv);

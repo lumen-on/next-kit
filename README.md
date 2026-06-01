@@ -5,7 +5,7 @@ Modern CLI toolkit for Next.js developers.
 ## Installation
 
 ```bash
-npm install -g next-kit
+npm install -g next-kit-cli
 ```
 
 ## Commands

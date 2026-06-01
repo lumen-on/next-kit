@@ -1,7 +1,7 @@
 {
-  "name": "next-kit",
+  "name": "next-kit-cli",
   "version": "0.1.0",
-  "description": "Modern code and template generator for Next.js",
+  "description": "Modern CLI toolkit for Next.js developers",
   "type": "module",
   "bin": {
     "next-kit": "./dist/cli.js"
@@ -9,9 +9,16 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "prepare": "npm run build"
   },
-  "keywords": ["next.js", "cli", "generator", "template"],
+  "keywords": [
+    "next.js",
+    "cli",
+    "generator",
+    "template",
+    "nextjs"
+  ],
   "author": "lumen-on",
   "license": "MIT",
   "dependencies": {
@@ -24,5 +31,8 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.0",
     "typescript": "^5.5.0"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }

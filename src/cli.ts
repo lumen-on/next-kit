@@ -6,6 +6,7 @@ import { componentCommand } from './commands/component.js';
 import { apiCommand } from './commands/api.js';
 import { pageCommand } from './commands/page.js';
 import { hookCommand } from './commands/hook.js';
+import { middlewareCommand } from './commands/middleware.js';
 
 const program = new Command();
 
@@ -43,5 +44,10 @@ program
   .command('hook <name>')
   .description('Generate a custom React hook')
   .action(hookCommand);
+
+program
+  .command('middleware')
+  .description('Generate middleware.ts')
+  .action(middlewareCommand);
 
 program.parse(process.argv);

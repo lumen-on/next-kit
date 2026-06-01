@@ -9,6 +9,7 @@ import { hookCommand } from './commands/hook.js';
 import { middlewareCommand } from './commands/middleware.js';
 import { layoutCommand } from './commands/layout.js';
 import { envCommand } from './commands/env.js';
+import { serverActionCommand } from './commands/server-action.js';
 
 const program = new Command();
 
@@ -61,5 +62,10 @@ program
   .command('env')
   .description('Generate environment files (.env.example, .env.local)')
   .action(envCommand);
+
+program
+  .command('server-action <name>')
+  .description('Generate a Server Action with Zod validation')
+  .action(serverActionCommand);
 
 program.parse(process.argv);

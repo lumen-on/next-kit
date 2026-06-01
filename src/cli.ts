@@ -10,18 +10,19 @@ import { middlewareCommand } from './commands/middleware.js';
 import { layoutCommand } from './commands/layout.js';
 import { envCommand } from './commands/env.js';
 import { serverActionCommand } from './commands/server-action.js';
+import { configInitCommand } from './commands/config.js';
 
 const program = new Command();
 
 program
   .name('next-kit')
   .description('Modern CLI toolkit for Next.js developers')
-  .version('0.1.0');
+  .version('0.2.0');
 
 program
   .command('init')
   .description('Initialize a new Next.js project')
-  .option('--yes', 'Use default options')
+  .option('--yes', 'Skip prompts and use defaults')
   .action(initCommand);
 
 program
@@ -66,7 +67,14 @@ program
 
 program
   .command('server-action <name>')
-  .description('Generate a Server Action with Zod validation')
+  .description('Generate a Server Action with Zod')
   .action(serverActionCommand);
+
+program
+  .command('config')
+  .description('Configuration commands')
+  .command('init')
+  .description('Create next-kit.config.ts')
+  .action(configInitCommand);
 
 program.parse(process.argv);

@@ -1,8 +1,8 @@
-import { intro, text, select, outro } from '@clack/prompts';
+import { intro, select, confirm, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile } from '../core/file-system.js';
-import { toKebabCase } from '../core/template-engine.js';
+import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
+import { toKebabCase, renderTemplate } from '../core/template-engine.js';
 import path from 'path';
 
 export async function apiCommand(name: string, options: { action?: boolean } = {}): Promise<void> {
@@ -11,7 +11,7 @@ export async function apiCommand(name: string, options: { action?: boolean } = {
   const routeName = toKebabCase(name);
   const isAction = options.action ?? false;
 
-  const targetDir = isAction 
+  const targetDir = isAction
     ? path.resolve(process.cwd(), 'src/app/actions')
     : path.resolve(process.cwd(), `src/app/api/${routeName}`);
 
@@ -25,25 +25,14 @@ export async function apiCommand(name: string, options: { action?: boolean } = {
     process.exit(1);
   }
 
-  let code = '';
+  const templateFile = isAction ? 'action.ts.tpl' : 'route.ts.tpl';
+  const templatePath = path.resolve(
+    import.meta.dirname,
+    `../../templates/api/${templateFile}`
+  );
 
-  if (isAction) {
-    code = `import { revalidatePath } from 'next/cache';\n\n`;
-    code += `export async function ${routeName}Action(formData: FormData) {\n`;
-    code += `  // TODO: Implement ${routeName} action\n`;
-    code += `  revalidatePath('/');\n`;
-    code += `  return { success: true };\n`;
-    code += `}\n`;
-  } else {
-    code = `import { NextResponse } from 'next/server';\n\n`;
-    code += `export async function GET() {\n`;
-    code += `  return NextResponse.json({ message: '${routeName}' });\n`;
-    code += `}\n\n`;
-    code += `export async function POST(request: Request) {\n`;
-    code += `  const body = await request.json();\n`;
-    code += `  return NextResponse.json({ received: body });\n`;
-    code += `}\n`;
-  }
+  const template = await readFile(templatePath);
+  const code = renderTemplate(template, { name: routeName });
 
   await writeFile(filePath, code);
   logger.success(`Created ${pc.dim(isAction ? `src/app/actions/${fileName}` : `src/app/api/${routeName}/route.ts`)}`);

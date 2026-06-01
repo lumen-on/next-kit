@@ -1,32 +1,26 @@
-export function renderTemplate(
-  template: string,
-  variables: Record<string, any>
-): string {
+export function renderTemplate(template: string, variables: Record<string, any>): string {
   let result = template;
 
-  // Обработка {{#if key}} ... {{/if}}
-  result = result.replace(
-    /{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g,
-    (_, key, content) => {
-      return variables[key] ? content : '';
-    }
-  );
+  // Обработка условных блоков {{#if key}} ... {{/if}}
+  const ifRegex = /{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g;
+  result = result.replace(ifRegex, (match, key, content) => {
+    return variables[key] ? content : '';
+  });
 
-  // Простая замена {{key}}
+  // Простая замена переменных {{key}}
   for (const [key, value] of Object.entries(variables)) {
-    if (typeof value === 'string' || typeof value === 'number') {
-      const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-      result = result.replace(regex, String(value));
-    }
+    if (typeof value === 'boolean') continue; // булевы уже обработаны выше
+    const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+    result = result.replace(regex, String(value));
   }
 
-  return result;
+  return result.trim();
 }
 
 export function toPascalCase(str: string): string {
   return str
     .split(/[-_]/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('');
 }
 

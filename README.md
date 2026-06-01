@@ -16,6 +16,7 @@ Initialize a new Next.js project with sensible defaults.
 
 ```bash
 next-kit init
+next-kit init --yes          # Use all defaults
 ```
 
 ### `next-kit component <name>`
@@ -100,7 +101,7 @@ next-kit server-action create-user
 
 ## Roadmap
 
-- [x] `init` command
+- [x] `init` command with stack selection
 - [x] `component` command
 - [x] `api` command
 - [x] `page` command

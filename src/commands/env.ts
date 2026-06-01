@@ -1,7 +1,7 @@
 import { intro, confirm, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
+import { ensureDir, pathExists, writeFile } from '../core/file-system.js';
 import path from 'path';
 
 export async function envCommand(): Promise<void> {
@@ -13,31 +13,28 @@ export async function envCommand(): Promise<void> {
   });
 
   const createLocal = await confirm({
-    message: 'Create empty .env.local?',
+    message: 'Create .env.local?',
     initialValue: true,
   });
 
   if (createExample) {
     const examplePath = path.resolve(process.cwd(), '.env.example');
-    if (await pathExists(examplePath)) {
-      logger.warn('.env.example already exists, skipping');
-    } else {
-      const templatePath = path.resolve(
-        import.meta.dirname,
-        '../../templates/env/env.example.tpl'
+    if (!(await pathExists(examplePath))) {
+      await writeFile(
+        examplePath,
+        'DATABASE_URL=\nNEXT_PUBLIC_API_URL=\n'
       );
-      const template = await readFile(templatePath);
-      await writeFile(examplePath, template);
       logger.success('Created .env.example');
     }
   }
 
   if (createLocal) {
     const localPath = path.resolve(process.cwd(), '.env.local');
-    if (await pathExists(localPath)) {
-      logger.warn('.env.local already exists, skipping');
-    } else {
-      await writeFile(localPath, '# Add your local environment variables here\n');
+    if (!(await pathExists(localPath))) {
+      await writeFile(
+        localPath,
+        'DATABASE_URL=\nNEXT_PUBLIC_API_URL=\n'
+      );
       logger.success('Created .env.local');
     }
   }

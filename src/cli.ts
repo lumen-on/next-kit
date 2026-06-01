@@ -21,7 +21,7 @@ program
 program
   .command('init')
   .description('Initialize a new Next.js project')
-  .option('-y, --yes', 'Skip prompts and use defaults')
+  .option('--yes', 'Use default options')
   .action(initCommand);
 
 program
@@ -61,7 +61,7 @@ program
 
 program
   .command('env')
-  .description('Generate environment files (.env.example, .env.local)')
+  .description('Generate environment files')
   .action(envCommand);
 
 program

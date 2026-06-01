@@ -1,30 +1,24 @@
-import fs from 'fs-extra';
-import path from 'path';
+export function renderTemplate(template: string, variables: Record<string, string>): string {
+  let result = template;
 
-export interface TemplateVariables {
-  [key: string]: string | boolean;
+  for (const [key, value] of Object.entries(variables)) {
+    const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+    result = result.replace(regex, value);
+  }
+
+  return result;
 }
 
-export async function renderTemplate(
-  templatePath: string,
-  targetPath: string,
-  variables: TemplateVariables
-): Promise<void> {
-  const content = await fs.readFile(templatePath, 'utf-8');
-  
-  let rendered = content;
-  
-  // Simple variable replacement {{name}} and {{Name}}
-  for (const [key, value] of Object.entries(variables)) {
-    if (typeof value === 'string') {
-      rendered = rendered.replace(new RegExp(`{{${key}}}`, 'g'), value);
-      // PascalCase version
-      const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-      const pascalValue = value.charAt(0).toUpperCase() + value.slice(1);
-      rendered = rendered.replace(new RegExp(`{{${pascalKey}}}`, 'g'), pascalValue);
-    }
-  }
-  
-  await fs.ensureDir(path.dirname(targetPath));
-  await fs.writeFile(targetPath, rendered);
+export function toPascalCase(str: string): string {
+  return str
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join('');
+}
+
+export function toKebabCase(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .toLowerCase()
+    .replace(/[_\s]+/g, '-');
 }

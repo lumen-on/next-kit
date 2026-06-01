@@ -75,6 +75,22 @@ Generate `middleware.ts` at the root of the project.
 next-kit middleware
 ```
 
+### `next-kit env`
+
+Generate environment files (`.env.example` and `.env.local`).
+
+```bash
+next-kit env
+```
+
+### `next-kit server-action <name>`
+
+Generate a Server Action with Zod validation schema.
+
+```bash
+next-kit server-action create-user
+```
+
 ## Architecture
 
 - `src/commands/` — command handlers
@@ -91,6 +107,8 @@ next-kit middleware
 - [x] `hook` command
 - [x] `layout` command
 - [x] `middleware` command
+- [x] `env` command
+- [x] `server-action` command
 - [ ] Custom template support
 - [ ] Configuration file (`next-kit.config.ts`)
 - [ ] LLM-powered generation

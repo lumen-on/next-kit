@@ -8,6 +8,7 @@ import { pageCommand } from './commands/page.js';
 import { hookCommand } from './commands/hook.js';
 import { middlewareCommand } from './commands/middleware.js';
 import { layoutCommand } from './commands/layout.js';
+import { envCommand } from './commands/env.js';
 
 const program = new Command();
 
@@ -55,5 +56,10 @@ program
   .command('layout <name>')
   .description('Generate a layout file')
   .action(layoutCommand);
+
+program
+  .command('env')
+  .description('Generate environment files (.env.example, .env.local)')
+  .action(envCommand);
 
 program.parse(process.argv);

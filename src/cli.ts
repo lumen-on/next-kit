@@ -21,6 +21,7 @@ program
 program
   .command('init')
   .description('Initialize a new Next.js project')
+  .option('-y, --yes', 'Skip prompts and use defaults')
   .action(initCommand);
 
 program

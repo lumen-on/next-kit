@@ -4,6 +4,7 @@ import pc from 'picocolors';
 import { initCommand } from './commands/init.js';
 import { componentCommand } from './commands/component.js';
 import { apiCommand } from './commands/api.js';
+import { pageCommand } from './commands/page.js';
 
 const program = new Command();
 
@@ -31,5 +32,11 @@ program
   .description('Generate API routes and Server Actions')
   .argument('[name]', 'Route name')
   .action(apiCommand);
+
+program
+  .command('page')
+  .description('Generate a new page')
+  .argument('[name]', 'Page name')
+  .action(pageCommand);
 
 program.parse(process.argv);

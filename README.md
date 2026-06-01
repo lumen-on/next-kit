@@ -28,11 +28,6 @@ next-kit component Button
 next-kit component UserCard --client --shadcn --test
 ```
 
-**Options:**
-- `--client` — create as client component (`'use client'`)
-- `--shadcn` — add shadcn/ui imports
-- `--test` — generate test file
-
 ### `next-kit api <name>`
 
 Generate API routes or Server Actions.
@@ -44,7 +39,7 @@ next-kit api posts --action
 
 ### `next-kit page <name>`
 
-Generate a Next.js page (and optionally layout).
+Generate a Next.js page.
 
 ```bash
 next-kit page dashboard
@@ -57,7 +52,6 @@ Generate a custom React hook.
 
 ```bash
 next-kit hook local-storage
-next-kit hook window-size
 ```
 
 ### `next-kit layout <name>`
@@ -70,7 +64,7 @@ next-kit layout dashboard
 
 ### `next-kit middleware`
 
-Generate `middleware.ts` at the root of the project.
+Generate `middleware.ts`.
 
 ```bash
 next-kit middleware
@@ -78,7 +72,7 @@ next-kit middleware
 
 ### `next-kit env`
 
-Generate environment files (`.env.example` and `.env.local`).
+Generate environment files.
 
 ```bash
 next-kit env
@@ -86,32 +80,52 @@ next-kit env
 
 ### `next-kit server-action <name>`
 
-Generate a Server Action with Zod validation schema.
+Generate a Server Action with Zod validation.
 
 ```bash
 next-kit server-action create-user
 ```
 
+### `next-kit config init`
+
+Create `next-kit.config.ts` for customizing paths and behavior.
+
+```bash
+next-kit config init
+```
+
+## Configuration
+
+You can create a `next-kit.config.ts` file to customize where files are generated:
+
+```ts
+import type { NextKitConfig } from 'next-kit-cli';
+
+const config: NextKitConfig = {
+  componentDir: 'src/components',
+  hookDir: 'src/hooks',
+  apiDir: 'src/app/api',
+  actionDir: 'src/app/actions',
+  typescript: true,
+  tailwind: true,
+  shadcn: false,
+};
+
+export default config;
+```
+
 ## Architecture
 
 - `src/commands/` — command handlers
-- `src/core/` — shared utilities (logger, file system, template engine)
-- `templates/` — file-based templates for each generator
-- Simple and extensible design for future LLM integration
+- `src/core/` — shared utilities (logger, file system, template engine, config, project detector)
+- `templates/` — file-based templates
+- Designed to be extensible for future LLM integration
 
 ## Roadmap
 
-- [x] `init` command with stack selection
-- [x] `component` command
-- [x] `api` command
-- [x] `page` command
-- [x] `hook` command
-- [x] `layout` command
-- [x] `middleware` command
-- [x] `env` command
-- [x] `server-action` command
-- [ ] Custom template support
-- [ ] Configuration file (`next-kit.config.ts`)
+- [x] Config system + project detection
+- [x] All core generators
+- [ ] Custom templates
 - [ ] LLM-powered generation
 
 ## License

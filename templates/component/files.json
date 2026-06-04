@@ -1,0 +1,16 @@
+{
+  "name": "component",
+  "description": "React component with optional test file",
+  "files": [
+    {
+      "template": "component.tsx.tpl",
+      "output": "src/components/{{name}}.tsx",
+      "condition": true
+    },
+    {
+      "template": "component.test.tsx.tpl",
+      "output": "src/components/{{name}}.test.tsx",
+      "condition": "{{withTest}}"
+    }
+  ]
+}

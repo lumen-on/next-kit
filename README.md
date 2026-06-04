@@ -101,10 +101,14 @@ export default config;
 
 ## Roadmap
 
-- [x] Core generators (component, page, api, hook, etc.)
-- [x] Project detection and smart defaults
-- [x] Configuration system
-- [ ] Custom user templates
+### v0.3.0 — Custom Templates & DX
+- [ ] Custom user templates (локальные + глобальные)
+- [ ] Multi-file generation via `files.json`
+- [ ] Generation flags (`--no-test`, `--with-story`, etc.)
+- [ ] `next-kit generate` command (aliases: `g`, `new`, `create`)
+- [ ] `next-kit template` management commands
+
+### Future
 - [ ] LLM-powered code generation
 - [ ] Plugin system
 

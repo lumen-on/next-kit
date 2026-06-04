@@ -1,4 +1,4 @@
-import { intro, text, confirm, select, outro } from '@clack/prompts';
+import { intro, text, confirm, select, outro, isCancel } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
 import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
@@ -30,15 +30,15 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
         if (!value) return 'Project name is required';
         if (!/^[a-z0-9-]+$/.test(value)) return 'Use lowercase letters, numbers and hyphens only';
       },
-    });
+    }) as boolean;
     if (typeof nameInput === 'string') projectName = nameInput;
 
-    useTypeScript = await confirm({ message: 'Use TypeScript?', initialValue: true });
-    useTailwind = await confirm({ message: 'Use Tailwind CSS?', initialValue: true });
-    useShadcn = useTailwind ? await confirm({ message: 'Use shadcn/ui?', initialValue: true }) : false;
-    useEslint = await confirm({ message: 'Use ESLint?', initialValue: true });
-    usePrettier = await confirm({ message: 'Use Prettier?', initialValue: true });
-    usePrisma = await confirm({ message: 'Use Prisma?', initialValue: false });
+    useTypeScript = (await confirm({ message: 'Use TypeScript?', initialValue: true }) as boolean;
+    useTailwind = (await confirm({ message: 'Use Tailwind CSS?', initialValue: true }) as boolean;
+    useShadcn = useTailwind ? (await confirm({ message: 'Use shadcn/ui?', initialValue: true }) : false;
+    useEslint = (await confirm({ message: 'Use ESLint?', initialValue: true }) as boolean;
+    usePrettier = (await confirm({ message: 'Use Prettier?', initialValue: true }) as boolean;
+    usePrisma = (await confirm({ message: 'Use Prisma?', initialValue: false }) as boolean;
   }
 
   const projectPath = path.resolve(process.cwd(), projectName);

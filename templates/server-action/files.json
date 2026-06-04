@@ -1,0 +1,11 @@
+{
+  "name": "server-action",
+  "description": "Next.js Server Action with Zod validation",
+  "files": [
+    {
+      "template": "action.ts.tpl",
+      "output": "src/app/actions/{{name}}.ts",
+      "condition": true
+    }
+  ]
+}

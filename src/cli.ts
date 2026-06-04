@@ -11,6 +11,8 @@ import { layoutCommand } from './commands/layout.js';
 import { envCommand } from './commands/env.js';
 import { serverActionCommand } from './commands/server-action.js';
 import { configInitCommand } from './commands/config.js';
+import { generateCommand } from './commands/generate.js';
+import { templateCommand } from './commands/template.js';
 
 const program = new Command();
 
@@ -25,6 +27,22 @@ program
   .option('--yes', 'Skip prompts and use defaults')
   .action(initCommand);
 
+// === Generate command with aliases ===
+program
+  .command('generate <template> <name>')
+  .alias('g')
+  .alias('new')
+  .alias('create')
+  .description('Generate files from a template')
+  .action((template, name, options) => generateCommand(template, name, options));
+
+// Template management
+program
+  .command('template [subcommand] [arg]')
+  .description('Manage custom templates')
+  .action(templateCommand);
+
+// Старые команды (пока оставляем)
 program
   .command('component <name>')
   .description('Generate a React component')

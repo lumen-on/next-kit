@@ -1,9 +1,9 @@
-import { intro, select, confirm, outro } from '@clack/prompts';
+import { intro, confirm, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
-import { toKebabCase, renderTemplate } from '../core/template-engine.js';
-import path from 'path';
+import { toKebabCase } from '../core/template-engine.js';
+import { resolveTemplate } from '../core/template-resolver.js';
+import { generateFromTemplate, normalizeFlags } from '../core/template-generator.js';
 
 export async function apiCommand(name: string, options: { action?: boolean } = {}): Promise<void> {
   intro(pc.bgCyan(pc.black(' next-kit api ')));
@@ -11,31 +11,27 @@ export async function apiCommand(name: string, options: { action?: boolean } = {
   const routeName = toKebabCase(name);
   const isAction = options.action ?? false;
 
-  const targetDir = isAction
-    ? path.resolve(process.cwd(), 'src/app/actions')
-    : path.resolve(process.cwd(), `src/app/api/${routeName}`);
+  // Если это Server Action — используем отдельный шаблон
+  const templateName = isAction ? 'server-action' : 'api';
 
-  await ensureDir(targetDir);
-
-  const fileName = isAction ? `${routeName}.ts` : 'route.ts';
-  const filePath = path.join(targetDir, fileName);
-
-  if (await pathExists(filePath)) {
-    logger.error(`${isAction ? 'Action' : 'Route'} already exists`);
+  const templateLocation = await resolveTemplate(templateName);
+  if (!templateLocation) {
+    logger.error(`${templateName} template not found`);
     process.exit(1);
   }
 
-  const templateFile = isAction ? 'action.ts.tpl' : 'route.ts.tpl';
-  const templatePath = path.resolve(
-    import.meta.dirname,
-    `../../templates/api/${templateFile}`
-  );
+  const variables = { name: routeName };
 
-  const template = await readFile(templatePath);
-  const code = renderTemplate(template, { name: routeName });
+  try {
+    const createdFiles = await generateFromTemplate(templateLocation.path, {
+      variables,
+      targetDir: process.cwd(),
+    });
 
-  await writeFile(filePath, code);
-  logger.success(`Created ${pc.dim(isAction ? `src/app/actions/${fileName}` : `src/app/api/${routeName}/route.ts`)}`);
-
-  outro(pc.green('API created!'));
+    createdFiles.forEach(file => logger.success(`Created ${pc.dim(file)}`));
+    outro(pc.green('API created!'));
+  } catch (error) {
+    logger.error(`Failed to generate API: ${error}`);
+    process.exit(1);
+  }
 }

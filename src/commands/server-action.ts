@@ -1,34 +1,33 @@
-import { intro, text, outro } from '@clack/prompts';
+import { intro, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
-import { toKebabCase, renderTemplate } from '../core/template-engine.js';
-import path from 'path';
+import { toKebabCase } from '../core/template-engine.js';
+import { resolveTemplate } from '../core/template-resolver.js';
+import { generateFromTemplate } from '../core/template-generator.js';
 
 export async function serverActionCommand(name: string): Promise<void> {
   intro(pc.bgCyan(pc.black(' next-kit server-action ')));
 
   const actionName = toKebabCase(name);
 
-  const targetDir = path.resolve(process.cwd(), 'src/app/actions');
-  await ensureDir(targetDir);
-
-  const actionPath = path.join(targetDir, `${actionName}.ts`);
-
-  if (await pathExists(actionPath)) {
-    logger.error(`Action "${actionName}" already exists`);
+  const templateLocation = await resolveTemplate('server-action');
+  if (!templateLocation) {
+    logger.error('Server Action template not found');
     process.exit(1);
   }
 
-  const templatePath = path.resolve(
-    import.meta.dirname,
-    '../../templates/server-action/action.ts.tpl'
-  );
-  const template = await readFile(templatePath);
-  const code = renderTemplate(template, { name: actionName });
+  const variables = { name: actionName };
 
-  await writeFile(actionPath, code);
-  logger.success(`Created ${pc.dim(`src/app/actions/${actionName}.ts`)}`);
+  try {
+    const createdFiles = await generateFromTemplate(templateLocation.path, {
+      variables,
+      targetDir: process.cwd(),
+    });
 
-  outro(pc.green('Server Action created!'));
+    createdFiles.forEach(file => logger.success(`Created ${pc.dim(file)}`));
+    outro(pc.green('Server Action created!'));
+  } catch (error) {
+    logger.error(`Failed to generate Server Action: ${error}`);
+    process.exit(1);
+  }
 }

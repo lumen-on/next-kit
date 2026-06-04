@@ -1,0 +1,11 @@
+{
+  "name": "hook",
+  "description": "Custom React hook",
+  "files": [
+    {
+      "template": "hook.ts.tpl",
+      "output": "src/hooks/use-{{name}}.ts",
+      "condition": true
+    }
+  ]
+}

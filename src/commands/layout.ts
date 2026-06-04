@@ -1,35 +1,33 @@
-import { intro, text, outro } from '@clack/prompts';
+import { intro, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
-import { toKebabCase, toPascalCase, renderTemplate } from '../core/template-engine.js';
-import path from 'path';
+import { toKebabCase } from '../core/template-engine.js';
+import { resolveTemplate } from '../core/template-resolver.js';
+import { generateFromTemplate } from '../core/template-generator.js';
 
 export async function layoutCommand(name: string): Promise<void> {
   intro(pc.bgCyan(pc.black(' next-kit layout ')));
 
   const layoutName = toKebabCase(name);
-  const componentName = toPascalCase(name);
 
-  const targetDir = path.resolve(process.cwd(), `src/app/${layoutName}`);
-  await ensureDir(targetDir);
-
-  const layoutPath = path.join(targetDir, 'layout.tsx');
-
-  if (await pathExists(layoutPath)) {
-    logger.error(`Layout "${layoutName}" already exists`);
+  const templateLocation = await resolveTemplate('layout');
+  if (!templateLocation) {
+    logger.error('Layout template not found');
     process.exit(1);
   }
 
-  const templatePath = path.resolve(
-    import.meta.dirname,
-    '../../templates/layout/layout.tsx.tpl'
-  );
-  const template = await readFile(templatePath);
-  const code = renderTemplate(template, { Name: componentName });
+  const variables = { name: layoutName };
 
-  await writeFile(layoutPath, code);
-  logger.success(`Created ${pc.dim(`src/app/${layoutName}/layout.tsx`)}`);
+  try {
+    const createdFiles = await generateFromTemplate(templateLocation.path, {
+      variables,
+      targetDir: process.cwd(),
+    });
 
-  outro(pc.green('Layout created!'));
+    createdFiles.forEach(file => logger.success(`Created ${pc.dim(file)}`));
+    outro(pc.green('Layout created!'));
+  } catch (error) {
+    logger.error(`Failed to generate layout: ${error}`);
+    process.exit(1);
+  }
 }

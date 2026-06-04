@@ -1,9 +1,9 @@
 import { intro, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
-import { toPascalCase, toKebabCase, renderTemplate } from '../core/template-engine.js';
-import path from 'path';
+import { toPascalCase, toKebabCase } from '../core/template-engine.js';
+import { resolveTemplate } from '../core/template-resolver.js';
+import { generateFromTemplate } from '../core/template-generator.js';
 
 export async function hookCommand(name: string): Promise<void> {
   intro(pc.bgCyan(pc.black(' next-kit hook ')));
@@ -11,28 +11,30 @@ export async function hookCommand(name: string): Promise<void> {
   const hookName = toPascalCase(name);
   const fileName = toKebabCase(name);
 
-  const targetDir = path.resolve(process.cwd(), 'src/hooks');
-  await ensureDir(targetDir);
-
-  const hookPath = path.join(targetDir, `use-${fileName}.ts`);
-
-  if (await pathExists(hookPath)) {
-    logger.error(`Hook "use-${fileName}" already exists`);
+  const templateLocation = await resolveTemplate('hook');
+  if (!templateLocation) {
+    logger.error('Hook template not found');
     process.exit(1);
   }
 
-  const templatePath = path.resolve(
-    import.meta.dirname,
-    '../../templates/hook/hook.ts.tpl'
-  );
-  const template = await readFile(templatePath);
-  const code = renderTemplate(template, {
+  const variables = {
     Name: hookName,
     name: fileName,
-  });
+  };
 
-  await writeFile(hookPath, code);
-  logger.success(`Created ${pc.dim(`src/hooks/use-${fileName}.ts`)}`);
+  try {
+    const createdFiles = await generateFromTemplate(templateLocation.path, {
+      variables,
+      targetDir: process.cwd(),
+    });
 
-  outro(pc.green('Hook created!'));
+    createdFiles.forEach(file => {
+      logger.success(`Created ${pc.dim(file)}`);
+    });
+
+    outro(pc.green('Hook created!'));
+  } catch (error) {
+    logger.error(`Failed to generate hook: ${error}`);
+    process.exit(1);
+  }
 }

@@ -1,9 +1,9 @@
 import { intro, confirm, outro } from '@clack/prompts';
 import pc from 'picocolors';
 import { logger } from '../core/logger.js';
-import { ensureDir, pathExists, writeFile, readFile } from '../core/file-system.js';
-import { toKebabCase, toPascalCase, renderTemplate } from '../core/template-engine.js';
-import path from 'path';
+import { toKebabCase, toPascalCase } from '../core/template-engine.js';
+import { resolveTemplate } from '../core/template-resolver.js';
+import { generateFromTemplate, normalizeFlags } from '../core/template-generator.js';
 
 export async function pageCommand(name: string, options: { layout?: boolean } = {}): Promise<void> {
   intro(pc.bgCyan(pc.black(' next-kit page ')));
@@ -12,40 +12,36 @@ export async function pageCommand(name: string, options: { layout?: boolean } = 
   const componentName = toPascalCase(name);
   const includeLayout = options.layout ?? false;
 
-  const targetDir = path.resolve(process.cwd(), `src/app/${pageName}`);
-  await ensureDir(targetDir);
-
-  const pagePath = path.join(targetDir, 'page.tsx');
-
-  if (await pathExists(pagePath)) {
-    logger.error(`Page "${pageName}" already exists`);
+  const templateLocation = await resolveTemplate('page');
+  if (!templateLocation) {
+    logger.error('Page template not found');
     process.exit(1);
   }
 
-  // page.tsx
-  const pageTemplatePath = path.resolve(
-    import.meta.dirname,
-    '../../templates/page/page.tsx.tpl'
-  );
-  const pageTemplate = await readFile(pageTemplatePath);
-  const pageCode = renderTemplate(pageTemplate, { Name: componentName });
+  const variables = {
+    Name: componentName,
+    name: pageName,
+  };
 
-  await writeFile(pagePath, pageCode);
-  logger.success(`Created ${pc.dim(`src/app/${pageName}/page.tsx`)}`);
+  const flags = normalizeFlags({
+    layout: includeLayout,
+    ...options,
+  });
 
-  // layout.tsx (опционально)
-  if (includeLayout) {
-    const layoutTemplatePath = path.resolve(
-      import.meta.dirname,
-      '../../templates/page/layout.tsx.tpl'
-    );
-    const layoutTemplate = await readFile(layoutTemplatePath);
-    const layoutCode = renderTemplate(layoutTemplate, { Name: componentName });
+  try {
+    const createdFiles = await generateFromTemplate(templateLocation.path, {
+      variables,
+      flags,
+      targetDir: process.cwd(),
+    });
 
-    const layoutPath = path.join(targetDir, 'layout.tsx');
-    await writeFile(layoutPath, layoutCode);
-    logger.success(`Created ${pc.dim(`src/app/${pageName}/layout.tsx`)}`);
+    createdFiles.forEach(file => {
+      logger.success(`Created ${pc.dim(file)}`);
+    });
+
+    outro(pc.green('Page created!'));
+  } catch (error) {
+    logger.error(`Failed to generate page: ${error}`);
+    process.exit(1);
   }
-
-  outro(pc.green('Page created!'));
 }

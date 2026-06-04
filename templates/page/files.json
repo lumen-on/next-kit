@@ -1,0 +1,16 @@
+{
+  "name": "page",
+  "description": "Next.js page with optional layout",
+  "files": [
+    {
+      "template": "page.tsx.tpl",
+      "output": "src/app/{{name}}/page.tsx",
+      "condition": true
+    },
+    {
+      "template": "layout.tsx.tpl",
+      "output": "src/app/{{name}}/layout.tsx",
+      "condition": "{{layout}}"
+    }
+  ]
+}

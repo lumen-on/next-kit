@@ -1,0 +1,11 @@
+{
+  "name": "middleware",
+  "description": "Next.js middleware.ts",
+  "files": [
+    {
+      "template": "middleware.ts.tpl",
+      "output": "src/middleware.ts",
+      "condition": true
+    }
+  ]
+}

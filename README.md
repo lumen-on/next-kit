@@ -17,7 +17,7 @@ Next.js projects often involve repetitive boilerplate: creating components, page
 - **Fast scaffolding** — start a production-ready Next.js app in seconds
 - **Consistent code generation** — follow best practices automatically
 - **Developer happiness** — beautiful prompts powered by `@clack/prompts`
-- **Extensible** — supports custom configuration and future LLM integration
+- **Extensible** — supports custom templates and future LLM integration
 
 ---
 
@@ -41,60 +41,76 @@ npx next-kit-cli init
 # Create a new Next.js project
 next-kit init my-app
 
-# Generate a component
-next-kit component Button --client --test
+# Generate using unified command (recommended)
+next-kit generate component Button --test
+next-kit g page dashboard --layout
 
-# Generate a Server Action with validation
-next-kit server-action create-user
+# Aliases also work
+next-kit new hook use-local-storage
+next-kit create server-action create-user
+
+# Manage custom templates
+next-kit template list
+next-kit template init my-component
 ```
 
 ---
 
 ## Available Commands
 
-| Command                    | Description                                      | Example                                      |
-|---------------------------|--------------------------------------------------|----------------------------------------------|
-| `next-kit init`           | Initialize a new Next.js project                 | `next-kit init my-app --yes`                 |
-| `next-kit component`      | Generate a React component                       | `next-kit component UserCard --shadcn`       |
-| `next-kit page`           | Generate a Next.js page                          | `next-kit page dashboard --layout`           |
-| `next-kit api`            | Generate API routes or Server Actions            | `next-kit api users --action`                |
-| `next-kit hook`           | Generate a custom React hook                     | `next-kit hook use-local-storage`            |
-| `next-kit layout`         | Generate a layout file                           | `next-kit layout dashboard`                  |
-| `next-kit middleware`     | Generate `middleware.ts`                         | `next-kit middleware`                        |
-| `next-kit env`            | Generate environment variable files              | `next-kit env`                               |
-| `next-kit server-action`  | Generate a Server Action with Zod validation     | `next-kit server-action create-user`         |
-| `next-kit config init`    | Create a configuration file                      | `next-kit config init`                       |
+| Command                        | Description                                      | Example                                              |
+|--------------------------------|--------------------------------------------------|------------------------------------------------------|
+| `next-kit init`                | Initialize a new Next.js project                 | `next-kit init my-app --yes`                         |
+| `next-kit generate`            | Generate from template (unified command)         | `next-kit generate component Button --test`          |
+| `next-kit g` / `new` / `create`| Aliases for generate                             | `next-kit g page dashboard`                          |
+| `next-kit component`           | Generate a React component                       | `next-kit component UserCard --shadcn`               |
+| `next-kit page`                | Generate a Next.js page                          | `next-kit page dashboard --layout`                   |
+| `next-kit api`                 | Generate API route or Server Action              | `next-kit api users --action`                        |
+| `next-kit server-action`       | Generate a Server Action                         | `next-kit server-action create-user`                 |
+| `next-kit hook`                | Generate a custom React hook                     | `next-kit hook use-local-storage`                    |
+| `next-kit layout`              | Generate a layout file                           | `next-kit layout dashboard`                          |
+| `next-kit middleware`          | Generate `middleware.ts`                         | `next-kit middleware`                                |
+| `next-kit env`                 | Generate environment variable files              | `next-kit env`                                       |
+| `next-kit template list`       | List available templates                         | `next-kit template list`                             |
+| `next-kit template init`       | Create a new custom template                     | `next-kit template init my-component`                |
 
 ---
 
-## Features
+## Custom Templates
 
-- **Interactive & beautiful CLI** using `@clack/prompts`
-- **TypeScript-first** with full type safety
-- **Smart project detection** — works in existing Next.js projects
-- **Configurable paths** via `next-kit.config.ts`
-- **Template-based generation** — easy to extend
-- **Roadmap**: LLM-powered generation and custom templates
+You can create your own templates in `.next-kit/templates/`:
 
----
+```
+.next-kit/templates/
+└── my-component/
+    ├── files.json
+    └── component.tsx.tpl
+```
 
-## Configuration
+**Example `files.json`:**
 
-You can customize generation paths by creating a `next-kit.config.ts`:
+```json
+{
+  "name": "my-component",
+  "files": [
+    {
+      "template": "component.tsx.tpl",
+      "output": "src/components/{{name}}.tsx",
+      "condition": true
+    },
+    {
+      "template": "component.test.tsx.tpl",
+      "output": "src/components/{{name}}.test.tsx",
+      "condition": "{{withTest}}"
+    }
+  ]
+}
+```
 
-```ts
-import type { NextKitConfig } from 'next-kit-cli';
+Then use it with:
 
-const config: NextKitConfig = {
-  componentDir: 'src/components',
-  hookDir: 'src/hooks',
-  apiDir: 'src/app/api',
-  typescript: true,
-  tailwind: true,
-  shadcn: true,
-};
-
-export default config;
+```bash
+next-kit generate my-component MyButton --withTest
 ```
 
 ---
@@ -102,11 +118,11 @@ export default config;
 ## Roadmap
 
 ### v0.3.0 — Custom Templates & DX
-- [ ] Custom user templates (локальные + глобальные)
-- [ ] Multi-file generation via `files.json`
-- [ ] Generation flags (`--no-test`, `--with-story`, etc.)
-- [ ] `next-kit generate` command (aliases: `g`, `new`, `create`)
-- [ ] `next-kit template` management commands
+- [x] Custom user templates (локальные + глобальные)
+- [x] Multi-file generation via `files.json`
+- [x] Generation flags (`--no-test`, `--with-story`, etc.)
+- [x] `next-kit generate` command (aliases: `g`, `new`, `create`)
+- [x] `next-kit template` management commands
 
 ### Future
 - [ ] LLM-powered code generation
@@ -116,7 +132,7 @@ export default config;
 
 ## Contributing
 
-Contributions are welcome! Whether it's bug reports, feature suggestions, or pull requests — feel free to open an issue.
+Contributions are welcome!
 
 1. Fork the repository
 2. Create your feature branch
